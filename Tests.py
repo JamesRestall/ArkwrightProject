@@ -1,32 +1,18 @@
 import tkinter as tk
 
-def existing_code(name):
-    # Your existing Python code here
-    result = f"Hello, {name}! Welcome to Tkinter."
-    return result
+def create_widgets():
+    label1 = tk.Label(window, text="Widget 1")
+    label1.grid(row=0, column=0)
 
-def on_button_click():
-    user_input = entry.get()
-    result = existing_code(user_input)
-    label.config(text=result)
+    label2 = tk.Label(window, text="Widget 2")
+    label2.grid(row=1, column=0)
 
-# Create the main application window
-root = tk.Tk()
-root.title("Integrate Tkinter with Existing Code")
+    label3 = tk.Label(window, text="Widget 2")
+    label3.grid(row=0, column=1)
 
-# Create a label widget
-label = tk.Label(root, text="Enter your name:")
+window = tk.Tk()
+window.title("Widgets Below Each Other")
 
-# Create an entry widget for text input
-userInput = tk.Entry(root)
+create_widgets()
 
-# Create a button widget
-button = tk.Button(root, text="Submit", command=on_button_click)
-
-# Pack the widgets into the window
-label.pack()
-userInput.pack()
-button.pack()
-
-# Start the Tkinter event loop
-root.mainloop()
+window.mainloop()
