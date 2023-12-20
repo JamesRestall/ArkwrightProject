@@ -1,7 +1,13 @@
 import tkinter as tk #GUI library
+from datetime import date
+
 
 window = tk.Tk()
 window.title("Revision planner")
+
+Subject_entries = []
+date = date.today()
+
 
 def clearGUI():
     print("Clear gui")
@@ -9,72 +15,86 @@ def clearGUI():
         widget.destroy()
 
 
-def getGeneralInputs():
 
-    counter = 0
+
+
+def getGeneralInputs():
+    clearGUI()
+    print("Get General inputs")
 
     input_var = tk.StringVar() #creates empty string variable
-    Question_Messages = ["How many subjects do you take?", "Please enter the name for each subject"]
+    question_prompt = tk.Message(window, text="How many subjects do you take?")
+    number_of_subjects = tk.Entry(window, textvariable=input_var)
+
+    question_prompt.pack()
+    number_of_subjects.pack()
+
+    def submit(number_of_subjects):
+        number_of_subjects = int(input_var.get())
+        subject_class_handling(number_of_subjects)
+
+    Submit_Button = tk.Button(window, text="Submit", command=lambda: submit(number_of_subjects))
+    Submit_Button.pack()
 
 
-    Question_Entry = tk.Entry(window, textvariable=input_var)  # Gets input for number of subjects and stores it in variable input_var
-    Question_Entry.pack()
-
-    def askQuestion():
-        print(counter)
-
-        Question_Prompt = tk.Message(window, text=Question_Messages[counter])  # Displays message at the index of Question messages list
-        Question_Prompt.pack()
 
 
 
-        def row_Of_Subjects():
-            NumberOfSubjects = int(input_var.get())
-            print("Number of subjects: ",NumberOfSubjects)
+class subject:
+    def __init__(self,name):
+        self.name = name
+        self.string = tk.StringVar()  # Creates empty string variable so input is not type entry
 
+    def tasks_input(self):
+        clearGUI()
+
+
+    def deadline_input(self):
+        clearGUI()
+
+
+        self.question_prompt = tk.Message(window, text="Please enter how many days until your test")
+        self.deadline = tk.Entry(window, textvariable=self.string)
+        self.submit = tk.Button(window, text="Submit", command=self.tasks_input)
+
+        self.question_prompt.pack()
+        self.deadline.pack()
+        self.submit.pack()
+
+        #self.deadline = int(self.string.get())
+
+
+
+
+
+
+
+
+def subject_class_handling(number_of_subjects):
+    counter = 0
+    subjects = [""] * number_of_subjects
+
+    def create_class(subject_name,counter):
+        subjects[counter] = subject(subject_name)
+        print("Create class")
+        subjects[counter].deadline_input()
+
+    def new_class():
+        if counter < number_of_subjects:
             clearGUI()
+            question_prompt = tk.Message(window, text=f"What is the name of subject {counter+1}?")
+            subject_name = tk.Entry(window)
+            submit = tk.Button(window, text="Submit", command=lambda: create_class(subject_name,counter))
 
-            for i in range(NumberOfSubjects): #Creates a table of inputs for each subject
-                Subject_Name_Entry = tk.Entry(window)
-                Subject_Name_Entry.pack()
+            question_prompt.pack()
+            subject_name.pack()
+            submit.pack()
 
-            ask_another()
-
-
-        def submit():
-
-            clearGUI()
-            print(Question_Messages)
-            print("Counter = ", counter)
-            Question_Prompt = tk.Message(window, text=Question_Messages[counter])  # Displays message at the index of Question messages list
-            Question_Prompt.pack()
-            print(Question_Messages[counter])
-            row_Of_Subjects()
-
-
-
-
-
-
-
-        Submit_Button = tk.Button(window, text="Submit", command=submit)
-        Submit_Button.pack()
-
-
-    def ask_another():
-        nonlocal counter #declares counter as global
-        if counter < len(Question_Messages):
-            askQuestion()
-            counter += 1
-
-    ask_another()
-
-
-
+    new_class()
 
 def controlFunction(): #Main function which calls other functions
     getGeneralInputs()
 
-    window.mainloop()
 
 controlFunction()
+window.mainloop()
