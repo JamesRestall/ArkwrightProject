@@ -96,22 +96,32 @@ class subject:
         task_times_heading.grid(row=0, column=2)
 
         def tasks_add(): #Adds a row to the task grid
+            task_name_value = tk.StringVar()
+            task_value_value = tk.StringVar()
+            task_time_value = tk.StringVar()
+
 
             print("task counter = ", self.task_counter)
 
-            task_name_entry = tk.Entry(task_grid, textvariable=tk.StringVar()) #Creates entry
+            self.task_names.append(task_name_value)
+            self.task_values.append(task_value_value)
+            self.task_times.append(task_time_value)
+
+            task_name_entry = tk.Entry(task_grid, textvariable=task_name_value) #Creates entry
             task_name_entry.grid(row=(self.task_counter)+1, column=0) #Positions the entry on another row in the first column
-            self.task_names.append(task_name_entry)
 
-            task_value_entry = tk.Entry(task_grid, textvariable=tk.StringVar())
+
+            task_value_entry = tk.Entry(task_grid, textvariable=task_value_value)
             task_value_entry.grid(row=(self.task_counter)+1, column=1) #position in the second column
-            self.task_values.append(task_value_entry)
 
-            task_time_entry = tk.Entry(task_grid, textvariable=tk.StringVar())
+
+            task_time_entry = tk.Entry(task_grid, textvariable=task_time_value)
             task_time_entry.grid(row=(self.task_counter)+1, column=2) #positions in the third column
-            self.task_times.append(task_time_entry)
+
 
             pack_widgets(task_grid)
+            print(task_value_value, " ", task_value_value, " ", task_time_value)
+            print(self.task_names,self.task_values,self.task_times)
 
             self.task_counter += 1
 
@@ -175,19 +185,6 @@ class subject:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 def subject_class_handling(list_setup):
 
     if list_setup:
@@ -233,6 +230,8 @@ def display_outputs(subjects):
         values_text = ["Deadline (days)", ""]
         task_rows = 0
 
+
+
         pre_display_message = tk.Message(window, text="Check subject values")
         pre_display_message.pack()
 
@@ -241,15 +240,19 @@ def display_outputs(subjects):
 
         grid = tk.Frame(window)
 
-
+        #Shorten this
         subject_title_name = tk.Message(grid, text="Name")
         subject_title_name.grid(row=1, column=0)
 
         subject_title_deadline = tk.Message(grid, text="Deadline (days)")
         subject_title_deadline.grid(row=2, column=0)
 
+        i = 0
+        j = 0
 
         for i in range(number_of_subjects): #loops for each subject (column) creates grid with inputted values
+            print(subjects[i].task_names)
+
             grid_headings = tk.Message(grid, text=f"Subject {i+1}")
             grid_headings.grid(row=0, column=i+1)
 
@@ -259,23 +262,51 @@ def display_outputs(subjects):
             subject_deadline = tk.Message(grid, text=subjects[i].deadline)
             subject_deadline.grid(row=2, column=i+1)
 
-            for i in range(len(subjects[i].task_names)):
+            task_number = -3
+
+            for j in range(len(subjects[i].task_names)):
+                task_number += 3
                 print("Task names")
-                try: #Trys to run this code
-                    if subjects[i].task_names[i]:
-                        print(subjects[i].task_names[i])
+                try: #Tries to run this code
+                    task_name_input = subjects[i].task_names[j].get()  # Retreives the text from the task_name of the index of the current subject
+                    task_value_input = subjects[i].task_values[j].get()
+                    task_time_input = subjects[i].task_times[j].get()
 
-                    if i >= task_rows:
+                    print(subjects[i].task_names)
+                    print(task_name_input)
+                    print(task_value_input)
+                    print(task_time_input)
+
+                    if j >= task_rows:
+                        print("Task rows")
                         task_rows += 1  # Increments task_rows by 1 so that the maximum number of rows is correct and doesn't ruin formatting
-                        task_name_entry = tk.Message(grid, text=subjects[i].task_names[i])
-                        task_name_entry.grid(row=i+2, column=i+1)
 
-                except: #Runs this code if the try code (256) fails
+                    task_name_entry = tk.Message(grid, text=task_name_input)
+                    task_name_entry.grid(row=task_number+3, column=i+1)
+                    print(task_name_input)
+
+                    task_value_entry = tk.Message(grid, text=task_value_input)
+                    task_value_entry.grid(row=task_number+4, column=i+1)
+
+                    task_time_entry = tk.Message(grid, text=task_time_input)
+                    task_time_entry.grid(row=task_number+5, column=i+1)
+
+                except: #Runs this code if the try code (line 256) fails
 
                         print("No more tasks")
-                        task_name_entry = tk.Message(grid, text="")
-                        task_name_entry.grid(row=i + 2, column=i + 1)
+                        task_name_entry = tk.Message(grid, text="") #Creates blank widgets so the format doesn't break
+                        task_name_entry.grid(row=task_number+3, column=i + 1)
 
+
+        for a in range(0, task_rows*3, 3):
+            side_task_name_heading = tk.Message(grid, text=f"Task{int((a/3)) + 1} name")
+            side_task_name_heading.grid(row=a+3, column=0)
+
+            side_task_value_heading = tk.Message(grid, text=f"Task{int((a/3)) + 1} count")
+            side_task_value_heading.grid(row=a + 4, column=0)
+
+            side_task_time_heading = tk.Message(grid, text=f"Task{int((a/3)) + 1} time")
+            side_task_time_heading.grid(row=a + 5, column=0)
 
 
         grid.pack()
