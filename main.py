@@ -9,8 +9,8 @@ window.geometry("500x500") #Sets size of window
 
 
 #creating empty arrays and variables for later
+global subjects
 Subject_entries = []
-date = date.today()
 subject_number = 0
 subjects = []
 
@@ -57,6 +57,9 @@ class subject:
         self.task_values = []
         self.task_times = []
         self.task_counter = 0
+        self.first_input = False
+        self.total_relative_time = 0
+        self.deadline = 0
 
 
 
@@ -103,6 +106,7 @@ class subject:
 
             print("task counter = ", self.task_counter)
 
+            #parallel arrays
             self.task_names.append(task_name_value)
             self.task_values.append(task_value_value)
             self.task_times.append(task_time_value)
@@ -143,6 +147,7 @@ class subject:
             clearGUI()
             print(deadline.get())
 
+
             #Assigns all the entry values into a class specific variable
             self.deadline = int(deadline.get())  # Converts deadline entry into integer
             self.task_name = task_name.get()
@@ -152,8 +157,10 @@ class subject:
 
 
 
-
-            subject_class_handling(False)
+            if self.first_input:
+                subject_class_handling(False)
+            else:
+                pre_display_outputs()
 
 
 
@@ -182,6 +189,31 @@ class subject:
         pack_widgets(task_grid)
 
 
+    def calculate_plan(self):
+        number_of_tasks = len(self.task_names)
+        self.scaled_tasks = [0] * number_of_tasks
+        self.time_per_day_task = [0] * number_of_tasks
+
+        #Makes the length of time for each task and the count multiply so all the tasks scale
+        for i in range(len(self.task_names)):
+            self.scaled_tasks[i] = int(self.task_values[i].get()) * int(self.task_times[i].get())
+            self.total_relative_time += self.scaled_tasks[i] #Running total of total relative time
+        print("scaled tasks: ",self.scaled_tasks)
+
+        #Divides the relative timing of tasks with the deadline
+
+
+        if self.block_revision:
+            self.time_per_day = self.total_relative_time / self.deadline  # Works out the time needed per day
+            print(self.time_per_day)
+
+
+        else: #I.e. mixed revision
+          for j in range(number_of_tasks):
+              self.time_per_day_task[j] = round(self.scaled_tasks[j] / self.deadline,0) #Works out the task for each task per day
+
+
+
 
 
 
@@ -192,6 +224,7 @@ def subject_class_handling(list_setup):
 
 
     def create_class(subject_name, subject_number):
+
         print(subjects)
         print(subject_number)
         subject_class = subject(subject_name)
@@ -213,14 +246,14 @@ def subject_class_handling(list_setup):
             subject_name.pack()
             submit.pack()
         else:
-            display_outputs(subjects)
+            pre_display_outputs()
 
 
     new_class()
 
 
 
-def display_outputs(subjects):
+def pre_display_outputs():
     print("Display outputs")
     for i in range(len(subjects)):
         print(subjects[i].block_revision)
@@ -240,12 +273,7 @@ def display_outputs(subjects):
 
         grid = tk.Frame(window)
 
-        #Shorten this
-        subject_title_name = tk.Message(grid, text="Name")
-        subject_title_name.grid(row=1, column=0)
 
-        subject_title_deadline = tk.Message(grid, text="Deadline (days)")
-        subject_title_deadline.grid(row=2, column=0)
 
         i = 0
         j = 0
@@ -277,9 +305,9 @@ def display_outputs(subjects):
                     print(task_value_input)
                     print(task_time_input)
 
-                    if j >= task_rows:
+                    if (j*3) >= task_rows:
                         print("Task rows")
-                        task_rows += 1  # Increments task_rows by 1 so that the maximum number of rows is correct and doesn't ruin formatting
+                        task_rows += 3  # Increments task_rows by 3 so that the maximum number of rows is correct and doesn't ruin formatting
 
                     task_name_entry = tk.Message(grid, text=task_name_input)
                     task_name_entry.grid(row=task_number+3, column=i+1)
@@ -291,6 +319,7 @@ def display_outputs(subjects):
                     task_time_entry = tk.Message(grid, text=task_time_input)
                     task_time_entry.grid(row=task_number+5, column=i+1)
 
+
                 except: #Runs this code if the try code (line 256) fails
 
                         print("No more tasks")
@@ -298,20 +327,61 @@ def display_outputs(subjects):
                         task_name_entry.grid(row=task_number+3, column=i + 1)
 
 
-        for a in range(0, task_rows*3, 3):
-            side_task_name_heading = tk.Message(grid, text=f"Task{int((a/3)) + 1} name")
-            side_task_name_heading.grid(row=a+3, column=0)
+            if subjects[i].block_revision == 0:
+                subject_block = tk.Message(grid, text="Mixed")
+            else:
+                subject_block = tk.Message(grid, text="Blocks")
 
-            side_task_value_heading = tk.Message(grid, text=f"Task{int((a/3)) + 1} count")
-            side_task_value_heading.grid(row=a + 4, column=0)
+            subject_block.grid(row=task_rows+6, column=i+1)
 
-            side_task_time_heading = tk.Message(grid, text=f"Task{int((a/3)) + 1} time")
-            side_task_time_heading.grid(row=a + 5, column=0)
+            def edit_subject(subject):
+                subjects[subject].class_input()
 
 
+            edit_button = tk.Button(grid, text="Edit", command=lambda: edit_subject(i))
+            edit_button.grid(row=task_rows+7, column=i+1)
+
+            def add_side_headings():
+                subject_title_name = tk.Message(grid, text="Name")
+                subject_title_name.grid(row=1, column=0)
+
+                subject_title_deadline = tk.Message(grid, text="Deadline (days)")
+                subject_title_deadline.grid(row=2, column=0)
+
+                for a in range(0, task_rows, 3):
+                    side_task_name_heading = tk.Message(grid, text=f"Task{int((a / 3)) + 1} name")
+                    side_task_name_heading.grid(row=a + 3, column=0)
+
+                    side_task_value_heading = tk.Message(grid, text=f"Task{int((a / 3)) + 1} count")
+                    side_task_value_heading.grid(row=a + 4, column=0)
+
+                    side_task_time_heading = tk.Message(grid, text=f"Task{int((a / 3)) + 1} time")
+                    side_task_time_heading.grid(row=a + 5, column=0)
+
+                subject_block_name = tk.Message(grid, text="Order of revision")
+                subject_block_name.grid(row=(task_rows) + 6, column=0)
+
+
+
+        def submit_entries():
+            clearGUI()
+            calculate_plan_subjects()
+
+        submit_entries = tk.Button(window, text="Submit entries", command=submit_entries)
+        submit_entries.pack()
+
+        add_side_headings()
         grid.pack()
 
     pre_display_gui()
+
+
+
+def calculate_plan_subjects():
+    for i in range(len(subjects)):
+        subjects[i].calculate_plan()
+
+
 
 def controlFunction(): #Main function which calls other functions
     getGeneralInputs()
