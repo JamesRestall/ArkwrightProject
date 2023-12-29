@@ -1,3 +1,4 @@
+# noinspection PyInterpreter
 import tkinter as tk #imports GUI library
 import tkinter.ttk as ttk
 from datetime import date
@@ -201,16 +202,49 @@ class subject:
         print("scaled tasks: ",self.scaled_tasks)
 
         #Divides the relative timing of tasks with the deadline
+        self.time_per_day = self.total_relative_time / self.deadline  # Works out the time needed for all tasks per day
+
+        self.daily_task_counts = [0] * self.deadline
+        self.daily_task_times = [0] * self.deadline
 
 
         if self.block_revision:
-            self.time_per_day = self.total_relative_time / self.deadline  # Works out the time needed per day
+            task_doing = 0
+
+            print("Task name: ", self.task_names[0].get())
+            print("Task value: ", self.task_values[0].get())
+            print("Task time: ", self.task_times[0].get())
+
+            for day in range(self.deadline): # for each day of revision until deadline
+                print(day)
+                print(self.daily_task_times)
+                print(self.daily_task_counts)
+
+                while self.daily_task_times[day] < self.time_per_day: #while daily time spent on tasks is less than time meant to be spent per day
+                    print("task doing: ", task_doing)
+
+                    if self.scaled_tasks[task_doing] <= 0:  #If all the time for a task is complete
+                        task_doing += 1 #Go onto the next task
+
+                    self.daily_task_times[day] += self.daily_task_times[task_doing] #Adds the time taken for the task
+                    self.daily_task_counts[day] += 1 #Increments the count of the current task for the day
+
+
+
+
             print(self.time_per_day)
+            print("Daily task counts: ", self.daily_task_counts)
+            print("Daily task times: ", self.daily_task_times)
 
 
         else: #I.e. mixed revision
-          for j in range(number_of_tasks):
-              self.time_per_day_task[j] = round(self.scaled_tasks[j] / self.deadline,0) #Works out the task for each task per day
+          self.task_count_daily = [0] * self.deadline
+
+          for task in range(number_of_tasks):
+              task_count = int(self.task_values[task].get())
+              self.task_count_daily[task] = round(task_count / self.deadline, 0)
+              print(self.task_names[task].get(), " count daily", self.task_count_daily[task])
+
 
 
 
