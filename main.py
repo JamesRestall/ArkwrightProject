@@ -238,12 +238,16 @@ class subject:
 
 
         else: #I.e. mixed revision
-          self.task_count_daily = [0] * self.deadline
+            self.task_count_daily = [0] * self.deadline
 
-          for task in range(number_of_tasks):
-              task_count = int(self.task_values[task].get())
-              self.task_count_daily[task] = round(task_count / self.deadline, 0)
-              print(self.task_names[task].get(), " count daily", self.task_count_daily[task])
+            for task in range(number_of_tasks):
+                  task_count = int(self.task_values[task].get())
+                  self.task_count_daily[task] = round(task_count / self.deadline, 0)
+                  print(self.task_names[task].get(), " count daily", self.task_count_daily[task])
+
+            display_output_mixed_revision()
+
+
 
 
 
@@ -267,8 +271,8 @@ def subject_class_handling(list_setup):
         subjects[subject_number-1].class_input() #Executes class_input function in the function
 
     def new_class():
-        global subject_number
-        if subject_number < number_of_subjects:
+        subject_number = 0
+        if subject_number <= number_of_subjects:
             subject_number += 1
             print("Subject_number = ", subject_number)
             clearGUI()
@@ -408,6 +412,68 @@ def pre_display_outputs():
         grid.pack()
 
     pre_display_gui()
+
+
+def display_output_mixed_revision():
+    clearGUI()
+    output_message_title = tk.Message(window, text="Revision timetable")
+    output_message_title.pack()
+
+    title_seperator = ttk.Separator(window, orient="horizontal")
+    title_seperator.pack(fill="x")  # Formats the separator so that it fills the entire x-axis (horizontal)
+
+    def display_subject_output_mixed(subject_index):
+        clearGUI()
+        current_subject = subjects[subject_index]
+
+
+        #Creates grid for title so they appear next to each other
+        title_grid = tk.Frame(window)
+
+        subject_title = tk.Message(title_grid, text=current_subject.name)
+        subject_title.grid(row=0, column=1)
+
+        def previous_subject():
+            display_subject_output_mixed(subject_index+1)
+
+        if subject_index > 0: #Makes sure there is a previous subject to go back to
+            previous_subject_button = tk.Button(title_grid, text="<", command=previous_subject)
+            previous_subject_button.grid(row=0, column=0)
+
+        def next_subject():
+            display_subject_output_mixed(subject_index-1)
+
+        if subject_index+1 < len(subjects): #Makes sure there is another subject to go forward to
+            next_subject_button = tk.Button(title_grid, text=">")
+            next_subject_button.grid(row=0, column=2)
+
+        title_grid.pack()
+
+        #No longer grid
+
+        title_seperator = ttk.Separator(window, orient="horizontal")
+        title_seperator.pack(fill="x")  # Formats the separator so that it fills the entire x-axis (horizontal)
+
+        #Subject timetable grid
+        timetable_grid = tk.Frame(window)
+
+        timetable_name_heading = tk.Message(timetable_grid, text="Task Name")
+        timetable_name_heading.grid(row=0, column=0)
+
+        timetable_count_heading = tk.Message(timetable_grid, text="Count per day")
+        timetable_count_heading.grid(row=0, column=1)
+
+        for task in range(len(current_subject.task_names)): #For each task
+            task_name_display = tk.Message(timetable_grid, text=current_subject.task_names[task].get())
+            task_name_display.grid(row=task+1, column=0)
+
+            task_count_display = tk.Message(timetable_grid, text=current_subject.task_count_daily[task])
+            task_count_display.grid(row=task+1, column=1)
+
+        timetable_grid.pack()
+
+    display_subject_output_mixed(0)
+
 
 
 
