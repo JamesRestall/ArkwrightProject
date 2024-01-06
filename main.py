@@ -11,6 +11,7 @@ window.geometry("500x500") #Sets size of window
 
 #creating empty arrays and variables for later
 global subjects
+global subject_number
 Subject_entries = []
 subject_number = 0
 subjects = []
@@ -39,7 +40,7 @@ def getGeneralInputs():
     def submit():
         global number_of_subjects #makes the number_of_subjects global (any code in the program can access it)
         number_of_subjects = int(input_var.get()) #assigns the integer value of the input_var entry variable to number_of_subjects
-        subject_class_handling(True)
+        subject_class_handling(True,0)
 
     Submit_Button = tk.Button(window, text="Submit", command=submit) #Creates a button, that when clicked runs the submit function
     Submit_Button.pack()
@@ -58,16 +59,17 @@ class subject:
         self.task_values = []
         self.task_times = []
         self.task_counter = 0
-        self.first_input = False
+        self.first_input = True
         self.total_relative_time = 0
         self.deadline = 0
+        self.task_count_daily = []
 
 
 
         self.block_revision = tk.BooleanVar()
 
 
-    def class_input(self):
+    def class_input(self, subject_number):
         clearGUI()
 
         deadline = tk.StringVar() #Creates empty string variable so the entry field doesn't produce a variable with type entry
@@ -144,7 +146,7 @@ class subject:
         line_seperator4 = ttk.Separator(window, orient="horizontal")
 
         #Submit button
-        def submit():
+        def submit(subject_number):
             clearGUI()
             print(deadline.get())
 
@@ -159,13 +161,14 @@ class subject:
 
 
             if self.first_input:
-                subject_class_handling(False)
+                subject_class_handling(False,subject_number)
+                self.first_input = False
             else:
                 pre_display_outputs()
 
 
 
-        submit_button = tk.Button(window, text="Submit", command=submit) #Button that when clicked executes submit function
+        submit_button = tk.Button(window, text="Submit", command=lambda: submit(subject_number)) #Button that when clicked executes submit function with variable "subject_number" passed into it
 
         def pack_widgets(task_grid): #formats all the widgets
             heading.pack()
@@ -238,12 +241,14 @@ class subject:
 
 
         else: #I.e. mixed revision
-            self.task_count_daily = [0] * self.deadline
+            self.task_count_daily = [0] * len(self.task_names)
 
-            for task in range(number_of_tasks):
+            for task in range(len(self.task_names)):
                   task_count = int(self.task_values[task].get())
                   self.task_count_daily[task] = round(task_count / self.deadline, 0)
                   print(self.task_names[task].get(), " count daily", self.task_count_daily[task])
+
+            print("self task count daily: ", self.task_count_daily)
 
             display_output_mixed_revision()
 
@@ -255,25 +260,28 @@ class subject:
 
 
 
-def subject_class_handling(list_setup):
+def subject_class_handling(list_setup,subject_number):
 
     if list_setup:
         print("Number of subjects = ", number_of_subjects)
 
 
+    subject_number += 1
+
     def create_class(subject_name, subject_number):
 
         print(subjects)
-        print(subject_number)
+        print("subject_number: ",subject_number)
         subject_class = subject(subject_name)
-        subjects.append(subject_class) #Creates class subject with name subject_name in list subjects at index subject_number - 1
+        subjects.append(subject_class) # Creates class subject with name subject_name in list subjects at index subject_number - 1
         print("Create class")
-        subjects[subject_number-1].class_input() #Executes class_input function in the function
+        subjects[subject_number-1].class_input(subject_number) #Executes class_input function in the function
 
-    def new_class():
-        subject_number = 0
+    def new_class(subject_number):
+
+        print(subject_number)
         if subject_number <= number_of_subjects:
-            subject_number += 1
+
             print("Subject_number = ", subject_number)
             clearGUI()
             question_prompt = tk.Message(window, text=f"What is the name of subject {subject_number}?")
@@ -287,7 +295,7 @@ def subject_class_handling(list_setup):
             pre_display_outputs()
 
 
-    new_class()
+    new_class(subject_number)
 
 
 
@@ -425,6 +433,7 @@ def display_output_mixed_revision():
     def display_subject_output_mixed(subject_index):
         clearGUI()
         current_subject = subjects[subject_index]
+        print("Subject name: ", current_subject.name)
 
 
         #Creates grid for title so they appear next to each other
@@ -434,17 +443,17 @@ def display_output_mixed_revision():
         subject_title.grid(row=0, column=1)
 
         def previous_subject():
-            display_subject_output_mixed(subject_index+1)
+            display_subject_output_mixed(subject_index-1)
 
         if subject_index > 0: #Makes sure there is a previous subject to go back to
             previous_subject_button = tk.Button(title_grid, text="<", command=previous_subject)
             previous_subject_button.grid(row=0, column=0)
 
         def next_subject():
-            display_subject_output_mixed(subject_index-1)
+            display_subject_output_mixed(subject_index+1)
 
         if subject_index+1 < len(subjects): #Makes sure there is another subject to go forward to
-            next_subject_button = tk.Button(title_grid, text=">")
+            next_subject_button = tk.Button(title_grid, text=">", command=next_subject)
             next_subject_button.grid(row=0, column=2)
 
         title_grid.pack()
@@ -463,7 +472,10 @@ def display_output_mixed_revision():
         timetable_count_heading = tk.Message(timetable_grid, text="Count per day")
         timetable_count_heading.grid(row=0, column=1)
 
+        print("Task count daily: ", current_subject.task_count_daily)
+
         for task in range(len(current_subject.task_names)): #For each task
+            print("Task number: ", task)
             task_name_display = tk.Message(timetable_grid, text=current_subject.task_names[task].get())
             task_name_display.grid(row=task+1, column=0)
 
