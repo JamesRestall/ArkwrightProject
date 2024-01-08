@@ -1,7 +1,7 @@
 # noinspection PyInterpreter
 import tkinter as tk #imports GUI library
 import tkinter.ttk as ttk
-from datetime import date
+
 
 
 window = tk.Tk() #Creates window
@@ -199,9 +199,9 @@ class subject:
         self.time_per_day_task = [0] * number_of_tasks
 
         #Makes the length of time for each task and the count multiply so all the tasks scale
-        for i in range(len(self.task_names)):
-            self.scaled_tasks[i] = int(self.task_values[i].get()) * int(self.task_times[i].get())
-            self.total_relative_time += self.scaled_tasks[i] #Running total of total relative time
+        for task in range(number_of_tasks):
+            self.scaled_tasks[task] = int(self.task_values[task].get()) * int(self.task_times[task].get())
+            self.total_relative_time += self.scaled_tasks[task] #Running total of total relative time
         print("scaled tasks: ",self.scaled_tasks)
 
         #Divides the relative timing of tasks with the deadline
@@ -212,25 +212,42 @@ class subject:
 
 
         if self.block_revision:
+            #Creates an array with arrays for each day until the deadline for each task
+            self.task_timetable = [0] * number_of_tasks
+            for task in range(number_of_tasks):
+                self.task_timetable[task] = [0] * self.deadline #Each task array of days is stored in the task_timetable array
+
+
+
             task_doing = 0
+            print("time per day: ",self.time_per_day)
 
             print("Task name: ", self.task_names[0].get())
-            print("Task value: ", self.task_values[0].get())
+            print("Task scaled: ", self.scaled_tasks)
             print("Task time: ", self.task_times[0].get())
 
             for day in range(self.deadline): # for each day of revision until deadline
                 print(day)
                 print(self.daily_task_times)
-                print(self.daily_task_counts)
+                print("Task timetable: ", self.task_timetable)
+                print("Length of tasks: ", len(self.task_names))
 
-                while self.daily_task_times[day] < self.time_per_day: #while daily time spent on tasks is less than time meant to be spent per day
-                    print("task doing: ", task_doing)
+                while self.daily_task_times[day] <= self.time_per_day: # while daily time spent on tasks is less than time meant to be spent per day
+
 
                     if self.scaled_tasks[task_doing] <= 0:  #If all the time for a task is complete
-                        task_doing += 1 #Go onto the next task
+                        if task_doing < len(self.task_names)-1:
+                            task_doing += 1 #Go onto the next task
 
-                    self.daily_task_times[day] += self.daily_task_times[task_doing] #Adds the time taken for the task
-                    self.daily_task_counts[day] += 1 #Increments the count of the current task for the day
+                    print("task doing: ", task_doing)
+
+                    self.scaled_tasks[task_doing] -= int(self.task_times[task_doing].get())
+                    self.daily_task_times[day] += int(self.task_times[task_doing].get()) #Adds the time taken for the task
+                    self.task_timetable[task_doing][day] += 1 #Increments the count of the current task for the current day
+
+
+
+                    print("Daily task time: ", self.daily_task_times[day])
 
 
 
@@ -241,11 +258,11 @@ class subject:
 
 
         else: #I.e. mixed revision
-            self.task_count_daily = [0] * len(self.task_names)
+            self.task_count_daily = [0] * len(self.task_names) #Creates an array with the same number of indexes as the task number
 
             for task in range(len(self.task_names)):
                   task_count = int(self.task_values[task].get())
-                  self.task_count_daily[task] = round(task_count / self.deadline, 0)
+                  self.task_count_daily[task] = round(task_count / self.deadline, 0) #Divides the task count by the days until deadline and rounds the value to a whole number
                   print(self.task_names[task].get(), " count daily", self.task_count_daily[task])
 
             print("self task count daily: ", self.task_count_daily)
@@ -422,7 +439,7 @@ def pre_display_outputs():
     pre_display_gui()
 
 
-def display_output_mixed_revision():
+def display_output_mixed_revision(mixed):
     clearGUI()
     output_message_title = tk.Message(window, text="Revision timetable")
     output_message_title.pack()
@@ -484,7 +501,46 @@ def display_output_mixed_revision():
 
         timetable_grid.pack()
 
-    display_subject_output_mixed(0)
+
+    def display_subject_output_block(subject_index):
+        clearGUI()
+        current_subject = subjects[subject_index]
+        print("Subject name: ", current_subject.name)
+
+        # Creates grid for title so they appear next to each other
+        title_grid = tk.Frame(window)
+
+        subject_title = tk.Message(title_grid, text=current_subject.name)
+        subject_title.grid(row=0, column=1)
+
+        def previous_subject():
+            display_subject_output_mixed(subject_index - 1)
+
+        if subject_index > 0:  # Makes sure there is a previous subject to go back to
+            previous_subject_button = tk.Button(title_grid, text="<", command=previous_subject)
+            previous_subject_button.grid(row=0, column=0)
+
+        def next_subject():
+            display_subject_output_mixed(subject_index + 1)
+
+        if subject_index + 1 < len(subjects):  # Makes sure there is another subject to go forward to
+            next_subject_button = tk.Button(title_grid, text=">", command=next_subject)
+            next_subject_button.grid(row=0, column=2)
+
+        title_grid.pack()
+
+        # No longer grid
+
+        title_seperator = ttk.Separator(window, orient="horizontal")
+        title_seperator.pack(fill="x")  # Formats the separator so that it fills the entire x-axis (horizontal)
+
+        #for task in range(len(current_subject.task_names)): #For each task
+
+
+    if mixed:
+        display_subject_output_mixed(0)
+    else:
+        display_subject_output_block(0)
 
 
 
