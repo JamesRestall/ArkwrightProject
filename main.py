@@ -268,7 +268,7 @@ class subject:
 
             print("self task count daily: ", self.task_count_daily)
 
-            display_output_mixed_revision()
+            display_subject_output_mixed(-1)
 
 
 
@@ -399,7 +399,8 @@ def pre_display_outputs():
             subject_block.grid(row=task_rows+6, column=i+1)
 
             def edit_subject(subject):
-                subjects[subject].class_input()
+                print("Subject: ", subject)
+                subjects[subject].class_input(subject)
 
 
             edit_button = tk.Button(grid, text="Edit", command=lambda: edit_subject(i))
@@ -440,67 +441,67 @@ def pre_display_outputs():
     pre_display_gui()
 
 
-def display_output_mixed_revision():
+
+
+def display_subject_output_mixed(subject_index):
     clearGUI()
-    output_message_title = tk.Message(window, text="Revision timetable")
-    output_message_title.pack()
+    current_subject = subjects[subject_index]
+    print("Subject name: ", current_subject.name)
+
+    #Creates grid for title so they appear next to each other
+    title_grid = tk.Frame(window)
+
+    subject_title = tk.Message(title_grid, text=current_subject.name)
+    subject_title.grid(row=0, column=1)
 
     title_seperator = ttk.Separator(window, orient="horizontal")
     title_seperator.pack(fill="x")  # Formats the separator so that it fills the entire x-axis (horizontal)
+    def previous_subject():
+        if subjects[subject_index - 1].block_revision:
+            display_subject_output_block(subject_index - 1)
+        else: #If mixed revision
+            display_subject_output_mixed(subject_index - 1)
 
-    def display_subject_output_mixed(subject_index):
-        clearGUI()
-        current_subject = subjects[subject_index]
-        print("Subject name: ", current_subject.name)
+    if subject_index > 0: #Makes sure there is a previous subject to go back to
+        previous_subject_button = tk.Button(title_grid, text="<", command=previous_subject)
+        previous_subject_button.grid(row=0, column=0)
+
+    def next_subject():
+        if subjects[subject_index + 1].block_revision:
+            display_subject_output_block(subject_index + 1)
+        else:  # If mixed revision
+            display_subject_output_mixed(subject_index + 1)
+
+    if subject_index+1 < len(subjects): #Makes sure there is another subject to go forward to
+        next_subject_button = tk.Button(title_grid, text=">", command=next_subject)
+        next_subject_button.grid(row=0, column=2)
+
+    title_grid.pack()
+
+    #No longer grid
 
 
-        #Creates grid for title so they appear next to each other
-        title_grid = tk.Frame(window)
 
-        subject_title = tk.Message(title_grid, text=current_subject.name)
-        subject_title.grid(row=0, column=1)
+    #Subject timetable grid
+    timetable_grid = tk.Frame(window)
 
-        def previous_subject():
-            display_subject_output_mixed(subject_index-1)
+    timetable_name_heading = tk.Message(timetable_grid, text="Task Name")
+    timetable_name_heading.grid(row=0, column=0)
 
-        if subject_index > 0: #Makes sure there is a previous subject to go back to
-            previous_subject_button = tk.Button(title_grid, text="<", command=previous_subject)
-            previous_subject_button.grid(row=0, column=0)
+    timetable_count_heading = tk.Message(timetable_grid, text="Count per day")
+    timetable_count_heading.grid(row=0, column=1)
 
-        def next_subject():
-            display_subject_output_mixed(subject_index+1)
+    print("Task count daily: ", current_subject.task_count_daily)
 
-        if subject_index+1 < len(subjects): #Makes sure there is another subject to go forward to
-            next_subject_button = tk.Button(title_grid, text=">", command=next_subject)
-            next_subject_button.grid(row=0, column=2)
+    for task in range(len(current_subject.task_names)): #For each task
+        print("Task number: ", task)
+        task_name_display = tk.Message(timetable_grid, text=current_subject.task_names[task].get())
+        task_name_display.grid(row=task+1, column=0)
 
-        title_grid.pack()
+        task_count_display = tk.Message(timetable_grid, text=current_subject.task_count_daily[task])
+        task_count_display.grid(row=task+1, column=1)
 
-        #No longer grid
-
-        title_seperator = ttk.Separator(window, orient="horizontal")
-        title_seperator.pack(fill="x")  # Formats the separator so that it fills the entire x-axis (horizontal)
-
-        #Subject timetable grid
-        timetable_grid = tk.Frame(window)
-
-        timetable_name_heading = tk.Message(timetable_grid, text="Task Name")
-        timetable_name_heading.grid(row=0, column=0)
-
-        timetable_count_heading = tk.Message(timetable_grid, text="Count per day")
-        timetable_count_heading.grid(row=0, column=1)
-
-        print("Task count daily: ", current_subject.task_count_daily)
-
-        for task in range(len(current_subject.task_names)): #For each task
-            print("Task number: ", task)
-            task_name_display = tk.Message(timetable_grid, text=current_subject.task_names[task].get())
-            task_name_display.grid(row=task+1, column=0)
-
-            task_count_display = tk.Message(timetable_grid, text=current_subject.task_count_daily[task])
-            task_count_display.grid(row=task+1, column=1)
-
-        timetable_grid.pack()
+    timetable_grid.pack()
 
 
 
@@ -518,14 +519,21 @@ def display_subject_output_block(subject_index):
     subject_title.grid(row=0, column=1)
 
     def previous_subject():
-        display_subject_output_block(subject_index - 1)
+        if subjects[subject_index-1].block_revision:
+            display_subject_output_block(subject_index - 1)
+        else:
+            display_subject_output_mixed(subject_index - 1)
+
 
     if subject_index > 0:  # Makes sure there is a previous subject to go back to
         previous_subject_button = tk.Button(title_grid, text="<", command=previous_subject)
         previous_subject_button.grid(row=0, column=0)
 
     def next_subject():
-        display_subject_output_block(subject_index + 1)
+        if subjects[subject_index + 1].block_revision:
+            display_subject_output_block(subject_index + 1)
+        else:  # If mixed revision
+            display_subject_output_mixed(subject_index + 1)
 
     if subject_index + 1 < len(subjects):  # Makes sure there is another subject to go forward to
         next_subject_button = tk.Button(title_grid, text=">", command=next_subject)
