@@ -305,21 +305,24 @@ class subject_instance:
             print(deadline.get())
 
 
-            #Assigns all the entry values into a class specific variable
-            self.deadline = int(deadline.get())  # Converts deadline entry into integer
-            self.task_name = task_name.get()
-            self.task_value = task_value.get()
-            self.task_time = task_time.get()
-            self.block_revision = block_revision.get()
+            try: #Makes sure it is possible to work with the inputted values
+                #Assigns all the entry values into a class specific variable
+                self.deadline = int(deadline.get())  # Converts deadline entry into integer
+                self.task_name = task_name.get()
+                self.task_value = task_value.get()
+                self.task_time = task_time.get()
+                self.block_revision = block_revision.get()
 
 
 
-            if self.first_input:
-                setup_new_classes(subject_number)
-                self.first_input = False
-            else:
-                display_inputs()
+                if self.first_input:
+                    setup_new_classes(subject_number)
+                    self.first_input = False
+                else:
+                    display_inputs()
 
+            except: #Input validation (The user can re-input)
+                self.class_input(subject_number)
 
 
         submit_button = tk.Button(window, text="Submit", command=lambda: submit(subject_number)) #Button that when clicked executes submit function with variable "subject_number" passed into it
