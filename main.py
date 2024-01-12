@@ -1,6 +1,6 @@
 # noinspection PyInterpreter
 import tkinter as tk #imports GUI library
-import tkinter.ttk as ttk
+import tkinter.ttk as ttk #Additional Gui library
 
 
 
@@ -18,7 +18,7 @@ subjects = []
 
 
 
-def clearGUI(): #Destroys all widgets in the gui
+def clearGUI(): #Destroys all widgets in the gui (i.e. makes it blank)
     print("Clear gui")
     for widget in window.winfo_children():
         widget.destroy()
@@ -34,30 +34,26 @@ def getGeneralInputs():
     question_prompt = tk.Message(window, text="How many subjects do you take?") #Creates message widget with text"How many subhjects do you take?"
     number_of_subjects_entry = tk.Entry(window, textvariable=input_var) #Creates an input field in the window with the answer being assigned to the input_var variable
 
-    question_prompt.pack() #Formats the widgets
+    question_prompt.pack() #Formats the widget
     number_of_subjects_entry.pack()
 
     def submit():
         global number_of_subjects #makes the number_of_subjects global (any code in the program can access it)
         number_of_subjects = int(input_var.get()) #assigns the integer value of the input_var entry variable to number_of_subjects
-        setup_new_classes(True,0)
+        setup_new_classes(0) #Calls the setup_new_classes function passing in the parameters True and 0
 
-    Submit_Button = tk.Button(window, text="Submit", command=submit) #Creates a button, that when clicked runs the submit function
+    Submit_Button = tk.Button(window, text="Submit", command=submit) #Creates a button, that when clicked calls the submit function
     Submit_Button.pack()
 
 
-def setup_new_classes(list_setup,subject_number):
+def setup_new_classes(subject_number):
 
-    #if list_setup:
-        #print("Number of subjects = ", number_of_subjects)
-
-
-    subject_number += 1
+    subject_number += 1  #Increments the subject number each time this function is called
 
     def new_class(subject_number):
 
         print(subject_number)
-        if subject_number <= number_of_subjects:
+        if subject_number <= number_of_subjects:  #Calculates whether the current subject number is less than or equal to the total number of subjects i.e. have all the subjects been inputted
 
             print("Subject_number = ", subject_number)
             clearGUI()
@@ -75,10 +71,10 @@ def setup_new_classes(list_setup,subject_number):
 
         print(subjects)
         print("subject_number: ",subject_number)
-        subject_class = subject_instance(subject_name)
-        subjects.append(subject_class) # Creates class subject with name subject_name in list subjects at index subject_number - 1
+        subject_class = subject_instance(subject_name)  # Creates an instance of the class "Subject" and passes in the parameter "subject_name"
+        subjects.append(subject_class)  # Assigns the previously creates class instance to the end of the subjects array
         print("Create class")
-        subjects[subject_number-1].class_input(subject_number) #Executes class_input function in the function
+        subjects[subject_number-1].class_input(subject_number)  #Executes class_input function in the class instance
 
 
 
@@ -87,24 +83,20 @@ def setup_new_classes(list_setup,subject_number):
 
 def display_inputs():
     print("Display outputs")
-    for i in range(len(subjects)):
-        print(subjects[i].block_revision)
-
+    for subject_print in range(len(subjects)):
+        print(subjects[subject_print].block_revision)
 
     clearGUI()
-    values_text = ["Deadline (days)", ""]
-    max_task_rows = 3
-
 
 
     pre_display_message = tk.Message(window, text="Check subject values")
     pre_display_message.pack()
 
-    title_seperator = ttk.Separator(window, orient="horizontal")
-    title_seperator.pack(fill="x") #Formats the separator so that it fills the entire x axis (horizontal)
+    title_seperator = ttk.Separator(window, orient="horizontal") #Creates a line
+    title_seperator.pack(fill="x")  #Formats the separator so that it fills the entire x axis (horizontal)
 
-    grid = tk.Frame(window)
-
+    grid = tk.Frame(window)  #Creates a grid
+    max_task_rows = 3
 
     for subject in range(number_of_subjects): #loops for each subject (column) creates grid with inputted values
         print(subjects[subject].task_names)
@@ -117,6 +109,7 @@ def display_inputs():
 
         subject_deadline = tk.Message(grid, text=subjects[subject].deadline)
         subject_deadline.grid(row=2, column=subject+1)
+
 
         task_number = -3
 
@@ -134,8 +127,10 @@ def display_inputs():
                 print(task_value_input)
                 print(task_time_input)
 
-                if (task*3) > max_task_rows:
-                    print("Task rows")
+
+
+                if task_number > max_task_rows:
+                    print("Task rows: ", max_task_rows)
                     max_task_rows += 3  # Increments task_rows by 3 so that the maximum number of rows is correct and doesn't ruin formatting
 
                 task_name_entry = tk.Message(grid, text=task_name_input)
@@ -149,14 +144,14 @@ def display_inputs():
                 task_time_entry.grid(row=task_number+5, column=subject+1)
 
 
-            except: #Runs this code if the try code (line 127) fails
+            except: #Runs this code if the try code fails
 
                     print("No more tasks")
-                    task_name_entry = tk.Message(grid, text="") #Creates blank widgets so the format doesn't break
-                    task_name_entry.grid(row=task_number+3, column=subject + 1)
+                    #task_name_entry = tk.Message(grid, text="") #Creates blank widgets so the format doesn't break
+                    #task_name_entry.grid(row=task_number+3, column=subject + 1)
 
 
-        if subjects[i].block_revision == 0:
+        if subjects[subject].block_revision == 0:
             subject_block = tk.Message(grid, text="Mixed")
         else:
             subject_block = tk.Message(grid, text="Blocks")
@@ -168,7 +163,7 @@ def display_inputs():
             subjects[subject].class_input(subject)
 
 
-        edit_button = tk.Button(grid, text="Edit", command=lambda: edit_subject(i))
+        edit_button = tk.Button(grid, text="Edit", command=lambda: edit_subject(subject))
         edit_button.grid(row=max_task_rows+7, column=subject+1)
 
 
@@ -178,7 +173,9 @@ def display_inputs():
     subject_title_deadline = tk.Message(grid, text="Deadline (days)")
     subject_title_deadline.grid(row=2, column=0)
 
-    for task_row_output in range(0, max_task_rows, 3):
+    print("Max task rows: ", max_task_rows)
+
+    for task_row_output in range(0, max_task_rows+1, 3):
         side_task_name_heading = tk.Message(grid, text=f"Task{int((task_row_output / 3)) + 1} name")
         side_task_name_heading.grid(row=task_row_output + 3, column=0)
 
@@ -318,7 +315,7 @@ class subject_instance:
 
 
             if self.first_input:
-                setup_new_classes(False,subject_number)
+                setup_new_classes(subject_number)
                 self.first_input = False
             else:
                 display_inputs()
