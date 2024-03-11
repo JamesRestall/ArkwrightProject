@@ -98,14 +98,15 @@ def display_inputs():
         subject_deadline.grid(row=2, column=subject+1)
 
         task_rows = -3
+        print("Task names length: ", len(subjects[subject].task_names))
 
         for task in range(len(subjects[subject].task_names)):  # For each task
             task_rows += 3
             print("Task names")
             try:  # Tries to run this code
-                task_name_input = subjects[subject].task_names[task].get()  # Retrieves the text from the current subject from the task_names array of the current task
-                task_value_input = subjects[subject].task_values[task].get()  # similar
-                task_time_input = subjects[subject].task_times[task].get()
+                task_name_input = subjects[subject].task_names[task]  # Retrieves the text from the current subject from the task_names array of the current task
+                task_value_input = subjects[subject].task_values[task]  # similar
+                task_time_input = subjects[subject].task_times[task]
 
                 print(subjects[subject].task_names)
                 print(task_name_input)
@@ -116,7 +117,7 @@ def display_inputs():
                     print("Task rows: ", max_task_rows)
                     max_task_rows += 3  # Increments task_rows by 3 so that the maximum number of rows is the highest number of tasks for one subject and therefore the list goes down to accommodate it
 
-                task_name_entry = tk.Message(grid, text=task_name_input)
+                task_name_entry = tk.Message(grid, text=task_name_input.get())
                 task_name_entry.grid(row=task_rows+3, column=subject+1)
                 print(task_name_input)
 
@@ -126,9 +127,10 @@ def display_inputs():
                 task_time_entry = tk.Message(grid, text=task_time_input)
                 task_time_entry.grid(row=task_rows+5, column=subject+1)
 
-            except:  # If there are no more tasks left in the array the code above will fail and this (nothing really) is executed
-                print("Failed")
+            except Exception as error:  # If there are no more tasks left in the array the code above will fail and this (nothing really) is executed
+                print(error)
 
+    for subject in range(number_of_subjects):
         if subjects[subject].block_revision:  # If the current subject is block revision create a widget displaying blocks and vice versa
             subject_block = tk.Message(grid, text="Blocks")
         else:
@@ -186,6 +188,7 @@ class SubjectInstance:
 
     # Constructor, runs every time the class is created, I've used it to assign the empty arrays and pass in the parameter and set it to the class instance
     def __init__(self, name):
+        self.error_message = None
         self.name = name
         self.first_input = True
 
@@ -207,6 +210,7 @@ class SubjectInstance:
 
     def class_input(self, subject_number):
         clear_GUI()
+        print("Class inputs")
         self.task_names = []  # Clears the values for the tasks so if they are edited the values are not appended to previous
         self.task_values = []
         self.task_times = []
@@ -280,25 +284,54 @@ class SubjectInstance:
         def submit(subject_number):
             clear_GUI()
             print(deadline.get())
+            print("Arrays")
+            print(self.task_values)
+            print(self.task_times)
+            print(self.task_names)
 
-            try:  # Makes sure it is possible to work with the inputted values
-                # Assigns all the entry values into a class specific variable
+            self.block_revision = block_revision.get()
+
+            # Input validation for the integer inputs
+            try:  # Attempts to convert the inputs into an integer
+                for task in range(len(self.task_values)):  # Iterates over each index of the parallel task arrays
+                    self.task_values[task] = int(self.task_values[task].get())
+                    self.task_times[task] = int(self.task_times[task].get())
                 self.deadline = int(deadline.get())  # Converts deadline entry into integer
-                self.task_name = task_name.get()
-                self.task_value = task_value.get()
-                self.task_time = task_time.get()
-                self.block_revision = block_revision.get()
 
-                if self.first_input:
-                    setup_new_classes(subject_number)
-                    self.first_input = False
-                else:
-                    display_inputs()
+            except ValueError as error:  # If this causes the program to crash e.g. for an input being string
+                print(error)
+                self.error_message = "Please enter ONLY NUMBERS into deadline, task value and task time fields"
+                self.class_input(subject_number)  # Recalls this function allowing the user to re-enter input
+                return
 
-            except:  # Input validation (The user can re-input)
-                self.class_input(subject_number)
+            print("1")
+            print("Task values: ", self.task_values)
+            print("Task times: ", self.task_times)
+            print("Task names: ", self.task_names)
 
-        submit_button = tk.Button(window, text="Submit", command=lambda: submit(subject_number))  # Button that when clicked executes submit function with variable "subject_number" passed into it
+            # Makes sure there has been an input for the rest of the values
+            print(task_name.get(), len(task_name.get()))
+            print("Deadline:", self.deadline)
+            if self.deadline < 1:
+                self.error_message = "Deadline needs to be 1 or more days"
+                print(self.error_message)
+                self.class_input(subject_number)  # Recalls this function allowing the user to re-enter input
+                return  # Stops the code below running
+
+            print("Task values: ", self.task_values)
+            print("Task times: ", self.task_times)
+            print("Task names: ", self.task_names)
+
+            # Checks whether this function has been called by an edit
+            if self.first_input:  # If not, then goes on with getting input for the rest of the subjects
+                setup_new_classes(subject_number)
+                self.first_input = False
+            else:  # If so, goes back to the input display
+                display_inputs()
+
+        # Button that when clicked executes submit function with variable "subject_number" passed into it
+        submit_button = tk.Button(window, text="Submit", command=lambda: submit(subject_number))
+        line_seperator5 = ttk.Separator(window, orient="horizontal")
 
         def pack_widgets(task_grid):  # formats all the widgets
             heading.pack()
@@ -318,6 +351,11 @@ class SubjectInstance:
             line_seperator4.pack(fill="x")
             submit_button.pack()
 
+            line_seperator5.pack(fill="x")
+            if self.error_message:  # Only displays an error message if there is a value for one
+                error_message_widget = tk.Message(window, text=self.error_message)
+                error_message_widget.pack()
+
         pack_widgets(task_grid)
 
     def calculate_plan(self):
@@ -327,7 +365,7 @@ class SubjectInstance:
 
         # Makes the length of time for each task and the count multiply so all the tasks scale
         for task in range(number_of_tasks):
-            self.scaled_tasks[task] = int(self.task_values[task].get()) * int(self.task_times[task].get())
+            self.scaled_tasks[task] = int(self.task_values[task]) * int(self.task_times[task])
             self.total_relative_time += self.scaled_tasks[task]  # Running total of total relative time
         print("scaled tasks: ", self.scaled_tasks)
 
@@ -346,7 +384,7 @@ class SubjectInstance:
             print("time per day: ", self.time_per_day)
             print("Task name: ", self.task_names[0].get())
             print("Task scaled: ", self.scaled_tasks)
-            print("Task time: ", self.task_times[0].get())
+            print("Task time: ", self.task_times[0])
 
             for day in range(self.deadline):  # for each day of revision until deadline
                 print(day)
@@ -362,8 +400,8 @@ class SubjectInstance:
                             break  # Exit the loop
 
                     print("task doing: ", task_doing)
-                    self.scaled_tasks[task_doing] -= int(self.task_times[task_doing].get())  # Decreases the time taken for one count of a task
-                    self.daily_task_times[day] += int(self.task_times[task_doing].get())  # Adds the time taken for the task
+                    self.scaled_tasks[task_doing] -= int(self.task_times[task_doing])  # Decreases the time taken for one count of a task
+                    self.daily_task_times[day] += int(self.task_times[task_doing])  # Adds the time taken for the task
                     self.task_timetable[task_doing][day] += 1  # Increments the count of the current task for the current day
 
                     print("Daily task time: ", self.daily_task_times[day])
@@ -376,7 +414,7 @@ class SubjectInstance:
             self.task_count_daily = [0] * len(self.task_names)  # Creates an array with the same number of indexes as the task number
 
             for task_mixed in range(len(self.task_names)):
-                task_count = int(self.task_values[task_mixed].get())
+                task_count = int(self.task_values[task_mixed])
                 self.task_count_daily[task_mixed] = round(task_count / self.deadline, 0)  # Divides the task count by the days until deadline and rounds the value to a whole number
                 print(self.task_names[task_mixed].get(), " count daily", self.task_count_daily[task_mixed])
 
@@ -386,7 +424,7 @@ class SubjectInstance:
 
         if self.block_revision:
             calculate_block_revision_plan()
-        else: #I.e. mixed revision
+        else:  # I.e. mixed revision
             calculate_mixed_revision_plan()
 
 
@@ -402,7 +440,7 @@ def display_subject_output_mixed(subject_index):
     current_subject = subjects[subject_index]
     print("Subject name: ", current_subject.name)
 
-    #Creates grid for title so, they appear next to each other
+    # Creates grid for title so, they appear next to each other
     title_grid = tk.Frame(window)
 
     subject_title = tk.Message(title_grid, text=current_subject.name)
@@ -440,7 +478,7 @@ def display_subject_output_mixed(subject_index):
 
     print("Task count daily: ", current_subject.task_count_daily)
 
-    for task in range(len(current_subject.task_names)): # For each task
+    for task in range(len(current_subject.task_names)):  # For each task
         print("Task number: ", task)
         task_name_display = tk.Message(timetable_grid, text=current_subject.task_names[task].get())
         task_name_display.grid(row=task+1, column=0)
@@ -511,6 +549,6 @@ def display_subject_output_block(subject_index):
     timetable_grid.pack()
 
 
-get_general_inputs() # Starts off the code
+get_general_inputs()  # Starts off the code
 
 window.mainloop()  # Loops updating the GUI
